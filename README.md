@@ -8,6 +8,9 @@ We are brand new to objective-c, so there could be problems with our code!
 Installing
 ==========
 
+PhoneGap 1.3.0
+--------------
+
 For installing with PhoneGap 1.3.0:
 in PGSQLitePlugin.h file change for PhoneGaps JSONKit.h implementation.
 
@@ -24,11 +27,28 @@ in PGSQLitePlugin.h file change for PhoneGaps JSONKit.h implementation.
         #import "File.h"
     #endif
 
+and in PGSQLitePlugin.m JSONRepresentation must be changed to JSONString:
+    --- a/Plugins/PGSQLitePlugin.m
+    +++ b/Plugins/PGSQLitePlugin.m
+    @@ -219,7 +219,7 @@
+             if (hasInsertId) {
+                 [resultSet setObject:insertId forKey:@"insertId"];
+             }
+    -        [self respond:callback withString:[resultSet JSONRepresentation] withType:@"success"];
+    +        [self respond:callback withString:[resultSet JSONString] withType:@"success"];
+         }
+     }
+
+SQLite library
+--------------
+
 In the Project Build Phases tab, select the "Link Binary with Libraries" dropdown menu and add 2 libraries:
 
 libsqlite3.0.dylib
 libsqlite3.dylib
 
+Install Plugin
+--------------
 
 Drag .h and .m files into your project's Plugins folder (in xcode) -- I always
 just have "Create references" as the option selected.
