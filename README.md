@@ -48,8 +48,8 @@ In the Project Build Phases tab, select the "Link Binary with Libraries" dropdow
 libsqlite3.0.dylib
 libsqlite3.dylib
 
-Install PGSQLite Plugin
------------------------
+PGSQLite Plugin
+---------------
 
 Drag .h and .m files into your project's Plugins folder (in xcode) -- I always
 just have "Create references" as the option selected.
