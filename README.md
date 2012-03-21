@@ -28,6 +28,7 @@ in PGSQLitePlugin.h file change for PhoneGaps JSONKit.h implementation.
     #endif
 
 and in PGSQLitePlugin.m JSONRepresentation must be changed to JSONString:
+
     --- a/Plugins/PGSQLitePlugin.m
     +++ b/Plugins/PGSQLitePlugin.m
     @@ -219,7 +219,7 @@
@@ -47,8 +48,8 @@ In the Project Build Phases tab, select the "Link Binary with Libraries" dropdow
 libsqlite3.0.dylib
 libsqlite3.dylib
 
-Install Plugin
---------------
+Install PGSQLite Plugin
+-----------------------
 
 Drag .h and .m files into your project's Plugins folder (in xcode) -- I always
 just have "Create references" as the option selected.
