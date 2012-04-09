@@ -1,5 +1,5 @@
 ###
-     PGSQLitePlugin Lawnchair Adapter
+     SQLitePlugin Lawnchair Adapter
      (c) 2011 Joe Noon <joenoon@gmail.com>
      This may be freely distributed under the MIT license.
 ###
@@ -7,14 +7,14 @@
 root = this
 
 fail = (e) ->
-  console.log "Error in PGSQLitePlugin Lawnchair adapter: #{e.message}"
+  console.log "Error in SQLitePlugin Lawnchair adapter: #{e.message}"
   return
 
 now = () -> (new Date()).getTime()
 
-pgsqlite_plugin =
+sqlite_plugin =
 
-  valid: () -> !!("PGSQLitePlugin" of root)
+  valid: () -> !!("SQLitePlugin" of root)
 
   init: (options, callback) ->
     that = this
@@ -25,8 +25,8 @@ pgsqlite_plugin =
       return
     # open a connection and create the db if it doesn't exist
     db = options.db || @name
-    @db = new PGSQLitePlugin("#{db}.sqlite3")
-    @db.executeSql sql, success, fail
+    @db = new SQLitePlugin("#{db}.sqlite3")
+    @db.executeSql sql, [], success, fail
     return
 
   keys: (callback) ->
@@ -36,7 +36,7 @@ pgsqlite_plugin =
     success = (res) ->
       cb.call(that, res.rows)
       return
-    @db.executeSql sql, success, fail
+    @db.executeSql sql, [], success, fail
     this
 
   save: (obj, callback) ->
@@ -55,7 +55,7 @@ pgsqlite_plugin =
       delete obj.key
       val.unshift(JSON.stringify(obj))
       sql = if exists then up else ins
-      db.executeSql [ sql ].concat(val), success, fail
+      db.executeSql sql, val, success, fail
       return
     this
 
@@ -111,7 +111,7 @@ pgsqlite_plugin =
             sql = if obj.key of ids_hash then up else ins
             delete obj.key
             val.unshift(JSON.stringify(obj))
-            t.executeSql [ sql ].concat(val), success, fail
+            t.executeSql sql, val, success, fail
             return
         return
 
@@ -126,7 +126,7 @@ pgsqlite_plugin =
     if keys.length > 0
       # the case where there is at least one object with an existing key
       exists_sql = [ "SELECT id FROM #{@name} WHERE id IN (#{marks})" ].concat(keys)
-      db.executeSql exists_sql, exists_success
+      db.executeSql exists_sql, [], exists_success
     else
       # the case where every object is new, so we don't need to do a select query first
       exists_success({ rows: [] })
@@ -156,7 +156,7 @@ pgsqlite_plugin =
       that.lambda(cb).call(that, r) if cb
       return
 
-    @db.executeSql sql, success, fail
+    @db.executeSql sql, [], success, fail
     this
 
   exists: (key, cb) ->
@@ -165,7 +165,7 @@ pgsqlite_plugin =
     success = (res) ->
       that.fn("exists", cb).call(that, res.rows.length > 0) if cb
       return
-    @db.executeSql sql, success, fail
+    @db.executeSql sql, [], success, fail
     this
 
   all: (callback) ->
@@ -181,7 +181,7 @@ pgsqlite_plugin =
           obj
       cb.call(that, r)
       return
-    @db.executeSql sql, success, fail
+    @db.executeSql sql, [], success, fail
     this
 
   remove: (keyOrObj, cb) ->
@@ -193,7 +193,7 @@ pgsqlite_plugin =
     success = () ->
       that.lambda(cb).call(that) if cb
       return
-    @db.executeSql sql, success, fail
+    @db.executeSql sql, [], success, fail
     this
 
   nuke: (cb) ->
@@ -205,8 +205,8 @@ pgsqlite_plugin =
       # clean up the db
       db.executeSql "VACUUM"
       return
-    @db.executeSql sql, success, fail
+    @db.executeSql sql, [], success, fail
     this
 
-PGSQLitePlugin.lawnchair_adapter = pgsqlite_plugin
-Lawnchair.adapter "pgsqlite_plugin", pgsqlite_plugin
+SQLitePlugin.lawnchair_adapter = sqlite_plugin
+Lawnchair.adapter "sqlite_plugin", sqlite_plugin
