@@ -1,49 +1,17 @@
-Phonegap SQLitePlugin
-=====================
+PGSqlitePlugin: SQLitePlugin for Phonegap
+=========================================
 
-DISCLAIMER:
-
-We are brand new to objective-c, so there could be problems with our code!
+The plugin is meant to work with Phonegap 1.5.0 (Cordova).
 
 Installing
 ==========
 
-PhoneGap 1.3.0
---------------
-
-For installing with PhoneGap 1.3.0:
-in PGSQLitePlugin.h file change for PhoneGaps JSONKit.h implementation.
-
-    #ifdef PHONEGAP_FRAMEWORK
-        #import <PhoneGap/PGPlugin.h>
-        #import <PhoneGap/JSONKit.h>
-        #import <PhoneGap/PhoneGapDelegate.h>
-        #import <PhoneGap/File.h>
-        #import<PhoneGap/FileTransfer.h>
-    #else
-        #import "PGPlugin.h"
-        #import "JSON.h"
-        #import "PhoneGapDelegate.h"
-        #import "File.h"
-    #endif
-
-and in PGSQLitePlugin.m JSONRepresentation must be changed to JSONString:
-
-    --- a/Plugins/PGSQLitePlugin.m
-    +++ b/Plugins/PGSQLitePlugin.m
-    @@ -219,7 +219,7 @@
-             if (hasInsertId) {
-                 [resultSet setObject:insertId forKey:@"insertId"];
-             }
-    -        [self respond:callback withString:[resultSet JSONRepresentation] withType:@"success"];
-    +        [self respond:callback withString:[resultSet JSONString] withType:@"success"];
-         }
-     }
-
 SQLite library
---------------
+-------------------
 
-In the Project "Build Phases" tab, select the _first_ "Link Binary with Libraries" dropdown menu and add the library `libsqlite3.dylib` or `libsqlite3.0.dylib`.
+In order to use the plugin you need to link the sqlite library in your phonegap application.
+
+In your projects "Build Phases" tab, select the _first_ "Link Binary with Libraries" dropdown menu and add the library `libsqlite3.dylib` or `libsqlite3.0.dylib`.
 
 **NOTE:** In the "Build Phases" there can be multiple "Link Binary with Libraries" dropdown menus. Please select the first one otherwise it will not work.
 
@@ -129,7 +97,6 @@ Include the following js files in your html:
 -  lawnchair_pgsqlite_plugin_adapter.js (must come after pgsqlite_plugin.js)
 
 
-
 The `name` option will determine the sqlite filename. Optionally, you can change it using the `db` option.
 
 In this example, you would be using/creating the database at: *Documents/kvstore.sqlite3* (all db's in PGSQLitePlugin are in the Documents folder)
@@ -140,7 +107,7 @@ In this example, you would be using/creating the database at: *Documents/kvstore
 Using the `db` option you can create multiple stores in one sqlite file. (There will be one table per store.)
 
     recipes = new Lawnchair {db: "cookbook", name: "recipes", ...}
-	ingredients = new Lawnchair {db: "cookbook", name: "ingredients", ...}
+    ingredients = new Lawnchair {db: "cookbook", name: "ingredients", ...}
 
 ### Other notes from @Joenoon:
 
@@ -149,4 +116,11 @@ writeJavascript on a timer, however there was only a barely noticeable
 performance gain.  So I took it out, not worth it.  However there is a
 massive performance gain by batching on the client-side to minimize
 PhoneGap.exec calls using the transaction support.
+
+### Other notes from @davibe:
+
+I used the plugin to store very large documents (1 or 2 Mb each) and found
+that the main bottleneck was passing data from javascript to native code.
+Running PhoneGap.exec took some seconds while completely blocking my
+application.
 

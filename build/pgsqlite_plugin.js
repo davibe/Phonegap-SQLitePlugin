@@ -66,7 +66,7 @@
         query: [].concat(sql || []),
         path: this.dbPath
       }, success, error);
-      PhoneGap.exec("PGSQLitePlugin.backgroundExecuteSql", opts);
+      Cordova.exec("PGSQLitePlugin.backgroundExecuteSql", opts);
     };
 
     PGSQLitePlugin.prototype.transaction = function(fn, success, error) {
@@ -83,7 +83,7 @@
         opts = getOptions({
           path: this.dbPath
         }, success, error);
-        PhoneGap.exec("PGSQLitePlugin.open", opts);
+        Cordova.exec("PGSQLitePlugin.open", opts);
       }
     };
 
@@ -94,7 +94,7 @@
         opts = getOptions({
           path: this.dbPath
         }, success, error);
-        PhoneGap.exec("PGSQLitePlugin.close", opts);
+        Cordova.exec("PGSQLitePlugin.close", opts);
       }
     };
 
@@ -132,7 +132,7 @@
       opts = {
         executes: executes
       };
-      PhoneGap.exec("PGSQLitePlugin.backgroundExecuteSqlBatch", opts);
+      Cordova.exec("PGSQLitePlugin.backgroundExecuteSqlBatch", opts);
       this.executes = [];
     };
 

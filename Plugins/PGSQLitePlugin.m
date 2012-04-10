@@ -17,16 +17,15 @@
 @synthesize openDBs;
 @synthesize appDocsPath;
 
--(PGPlugin*) initWithWebView:(UIWebView*)theWebView
+-(CDVPlugin*) initWithWebView:(UIWebView*)theWebView
 {
     self = (PGSQLitePlugin*)[super initWithWebView:theWebView];
     if (self) {
         openDBs = [NSMutableDictionary dictionaryWithCapacity:0];
         [openDBs retain];
         
-        PGFile* pgFile = [[self appDelegate] getCommandInstance: @"com.phonegap.file"];
-        NSString *docs = [pgFile appDocsPath];
-        [self setAppDocsPath:docs];
+        NSString* documents = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+        [self setAppDocsPath:documents];
 
     }
     return self;
@@ -219,7 +218,7 @@
         if (hasInsertId) {
             [resultSet setObject:insertId forKey:@"insertId"];
         }
-        [self respond:callback withString:[resultSet JSONRepresentation] withType:@"success"];
+        [self respond:callback withString:[resultSet JSONString] withType:@"success"];
     }
 }
 
