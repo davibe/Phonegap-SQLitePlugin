@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title></title>
+  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+	<meta charset="utf-8">
+
+
+	<script type="text/javascript" charset="utf-8" src="cordova-1.5.0.js"></script>
+    <script type="text/javascript" charset="utf-8" src="pgsqlite_plugin.js"></script>
+    <script type="text/javascript">
+
+    window.onerror = function (e, url, line) {
+        console.log ("window.onerror ---");
+        console.log(JSON.stringify(e, null, '  '));
+        console.log(JSON.stringify(line, null, '  '));
+    };
+    
+	function onBodyLoad(){		
+		document.addEventListener("deviceready", onDeviceReady, false);
+	}
+	
+	function onDeviceReady(){        
+        console.log ('start');
+        var db = new PGSQLitePlugin('testdb', onOpen, onFail);
+        
+        function onFail (e) {
+            console.log ("Error");
+            var error = JSON.stringify(e, null, '  ');
+            alert(error);
+            console.log(error);
+        }
+        
+        function onOpen () {
+            console.log('Database opened');
+            createTable();
+        }
+        
+        function createTable () {
+            console.log('Creating test table');
+            var query = '' +
+                'CREATE TABLE IF NOT EXISTS "test" (' +
+                'Id INTEGER PRIMARY KEY AUTOINCREMENT,' +
+                'valore VARCHAR(100)' +
+                ');' + 
+                '';
+            db.executeSql(query, onCreateTable, onFail);
+        }
+        
+        function onCreateTable () {
+            console.log ('-> Test table created');
+            dropTable();
+        }
+        
+        function dropTable () {
+            console.log ('Clean test table');
+            var query = 'DELETE FROM "test" WHERE 1 = 1;';
+            db.executeSql(query, onDropTable, onFail);
+        }
+        
+        function onDropTable () {
+            console.log('-> Test table cleaned');
+            setData();
+        }
+        
+        function setData () {
+            console.log('Insert some data in the table');
+            var query = 'INSERT INTO "test" VALUES(1, "ciao");';
+            db.executeSql(query, onSetData, onFail);
+        }
+        
+        function onSetData () {
+            console.log ('-> Data has been set');
+            getData();
+        }
+        
+        function getData () {
+            console.log ('Getting data');
+            var query = 'SELECT * FROM "test" where Id = 1;'
+            db.executeSql(query, onGetData, onFail);
+        }
+        
+        function onGetData(res) {
+            console.log('-> Got the data');
+            console.log(res);
+            
+            function onRow (row) {
+                console.log (JSON.stringify (row, null, '  '));
+            }
+            
+            res.rows.forEach (onRow);
+        }
+        
+	}
+    
+    </script>
+  </head>
+  <body onload="onBodyLoad()">
+	<h1>Hey, it's Cordova!</h1>
+  </body>
+</html>

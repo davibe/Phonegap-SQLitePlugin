@@ -41,6 +41,12 @@ Insert this in there:
 General Usage
 =============
 
+`www/index.html` contains a test application that runs very simple queries
+using plain javascript. It is recommended that you first run this one and check
+the XCode console to see that everything is working fine.
+
+The following examples show you how you can use transactions.
+
 ## Coffee Script
 
     db = new PGSQLitePlugin("test_native.sqlite3")
