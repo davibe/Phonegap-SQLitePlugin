@@ -1,0 +1,178 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Phonegap-sqliteplugin by davibe</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Phonegap-sqliteplugin</h1>
+        <p>A phonegap plugin to open and use sqlite databases on iOS.</p>
+        <p class="view"><a href="https://github.com/davibe/Phonegap-SQLitePlugin">View the Project on GitHub <small>davibe/Phonegap-SQLitePlugin</small></a></p>
+        <ul>
+          <li><a href="https://github.com/davibe/Phonegap-SQLitePlugin/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/davibe/Phonegap-SQLitePlugin/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/davibe/Phonegap-SQLitePlugin">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>PGSqlitePlugin: SQLitePlugin for Phonegap</h1>
+
+<p>This plugin exists because I developed some large enterprise (boring) mobile
+applications and found some problems using WebkitSQLite</p>
+
+<ul>
+<li>Quota limit (~5Mb on ios)</li>
+<li><a href="http://stackoverflow.com/questions/8741000/html5-web-sql-transactions-skipped-without-error-when-touch-triggered-in-ios">Transaction problems related to user interaction</a></li>
+<li><a href="https://issues.apache.org/jira/browse/CB-330">Persistence problems</a></li>
+</ul><p>The plugin is meant to work with Phonegap 1.7.0 (Cordova).</p>
+
+<p>The API is not the same as HTML5 Web Sql one. I'm trying to move things in that
+direction though.</p>
+
+<h1>Installing</h1>
+
+<h2>SQLite library</h2>
+
+<p>In order to use the plugin you need to link the sqlite library in your phonegap application.</p>
+
+<p>In your projects "Build Phases" tab, select the <em>first</em> "Link Binary with Libraries" dropdown menu and add the library <code>libsqlite3.dylib</code> or <code>libsqlite3.0.dylib</code>.</p>
+
+<p><strong>NOTE:</strong> In the "Build Phases" there can be multiple "Link Binary with Libraries" dropdown menus. Please select the first one otherwise it will not work.</p>
+
+<h2>PGSQLite Plugin</h2>
+
+<p>Drag .h and .m files into your project's Plugins folder (in xcode) -- I always
+just have "Create references" as the option selected.</p>
+
+<p>Take the precompiled javascript file from build/, or compile the coffeescript
+file in src/ to javascript WITH the top-level function wrapper option (default).</p>
+
+<p>Use the resulting javascript file in your HTML.</p>
+
+<p>Look for the following to your project's PhoneGap.plist:</p>
+
+<pre><code>&lt;key&gt;Plugins&lt;/key&gt;
+&lt;dict&gt;
+  ...
+&lt;/dict&gt;
+</code></pre>
+
+<p>Insert this in there:</p>
+
+<pre><code>&lt;key&gt;PGSQLitePlugin&lt;/key&gt;
+&lt;string&gt;PGSQLitePlugin&lt;/string&gt;
+</code></pre>
+
+<h1>General Usage</h1>
+
+<p><code>www/index.html</code> contains a test application that runs very simple queries
+using plain javascript. It is recommended that you first run this one and check
+the XCode console to see that everything is working fine.</p>
+
+<p>The following examples show you how you can use transactions.</p>
+
+<h2>Coffee Script</h2>
+
+<pre><code>db = new PGSQLitePlugin("test_native.sqlite3")
+db.executeSql('DROP TABLE IF EXISTS test_table')
+db.executeSql('CREATE TABLE IF NOT EXISTS test_table (id integer primary key, data text, data_num integer)')
+
+db.transaction (tx) -&gt;
+
+  tx.executeSql [ "INSERT INTO test_table (data, data_num) VALUES (?,?)", "test", 100], (res) -&gt;
+
+    # success callback
+
+    console.log "insertId: #{res.insertId} -- probably 1"
+    console.log "rowsAffected: #{res.rowsAffected} -- should be 1"
+
+    # check the count (not a part of the transaction)
+    db.executeSql "select count(id) as cnt from test_table;", (res) -&gt;
+      console.log "rows.length: #{res.rows.length} -- should be 1"
+      console.log "rows[0].cnt: #{res.rows[0].cnt} -- should be 1"
+
+  , (e) -&gt;
+
+    # error callback
+
+    console.log "ERROR: #{e.message}"
+</code></pre>
+
+<h2>Plain Javascript</h2>
+
+<pre><code>var db;
+db = new PGSQLitePlugin("test_native.sqlite3");
+db.executeSql('DROP TABLE IF EXISTS test_table');
+db.executeSql('CREATE TABLE IF NOT EXISTS test_table (id integer primary key, data text, data_num integer)');
+db.transaction(function(tx) {
+  return tx.executeSql(["INSERT INTO test_table (data, data_num) VALUES (?,?)", "test", 100], function(res) {
+    console.log("insertId: " + res.insertId + " -- probably 1");
+    console.log("rowsAffected: " + res.rowsAffected + " -- should be 1");
+    return db.executeSql("select count(id) as cnt from test_table;", function(res) {
+      console.log("rows.length: " + res.rows.length + " -- should be 1");
+      return console.log("rows[0].cnt: " + res.rows[0].cnt + " -- should be 1");
+    });
+  }, function(e) {
+    return console.log("ERROR: " + e.message);
+  });
+});
+</code></pre>
+
+<h1>Lawnchair Adapter Usage</h1>
+
+<p>Include the following js files in your html:</p>
+
+<ul>
+<li> lawnchair.js (you provide)</li>
+<li> pgsqlite_plugin.js</li>
+<li> lawnchair_pgsqlite_plugin_adapter.js (must come after pgsqlite_plugin.js)</li>
+</ul><p>The <code>name</code> option will determine the sqlite filename. Optionally, you can change it using the <code>db</code> option.</p>
+
+<p>In this example, you would be using/creating the database at: <em>Documents/kvstore.sqlite3</em> (all db's in PGSQLitePlugin are in the Documents folder)</p>
+
+<pre><code>kvstore = new Lawnchair { name: "kvstore", adapter: PGSQLitePlugin.lawnchair_adapter }, () -&gt;
+  # do stuff
+</code></pre>
+
+<p>Using the <code>db</code> option you can create multiple stores in one sqlite file. (There will be one table per store.)</p>
+
+<pre><code>recipes = new Lawnchair {db: "cookbook", name: "recipes", ...}
+ingredients = new Lawnchair {db: "cookbook", name: "ingredients", ...}
+</code></pre>
+
+<h3>Other notes from <a href="https://github.com/joenoon" class="user-mention">@joenoon</a>:</h3>
+
+<p>I played with the idea of batching responses into larger sets of
+writeJavascript on a timer, however there was only a barely noticeable
+performance gain.  So I took it out, not worth it.  However there is a
+massive performance gain by batching on the client-side to minimize
+PhoneGap.exec calls using the transaction support.</p>
+
+<h3>Other notes from <a href="https://github.com/davibe" class="user-mention">@davibe</a>:</h3>
+
+<p>I used the plugin to store very large documents (1 or 2 Mb each) and found
+that the main bottleneck was passing data from javascript to native code.
+Running PhoneGap.exec took some seconds while completely blocking my
+application.</p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/davibe">davibe</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
