@@ -1,7 +1,7 @@
 PGSqlitePlugin: SQLitePlugin for Phonegap
 =========================================
 
-The plugin is meant to work with Phonegap 1.5.0 (Cordova).
+The plugin is meant to work with Phonegap 1.7.0 (Cordova).
 
 Installing
 ==========
