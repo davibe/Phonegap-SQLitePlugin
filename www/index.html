@@ -91,6 +91,28 @@
             }
             
             res.rows.forEach (onRow);
+            transact ();
+        }
+        
+        function transact () {
+            console.log ("Start a transaction");
+            db.transaction (onTransaction);
+        }
+        
+        function onTransaction (tx) {
+            console.log ("Execute transaction");
+            tx.executeSql(['SELECT * FROM "test" where Id = 1;'], onTxDone, onFail);
+        }
+        
+        function onTxDone (res) {
+            console.log('-> Got the data from transaction');
+            console.log(res);
+            
+            function onRow (row) {
+                console.log (JSON.stringify (row, null, '  '));
+            }
+            
+            res.rows.forEach (onRow);
         }
         
 	}
