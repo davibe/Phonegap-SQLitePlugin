@@ -59,6 +59,12 @@
       delete callbacks[ref];
     };
 
+    PGSQLitePlugin.openDatabase = function(dbPath, version, ignored, maxSize, success, error) {
+      var db;
+      db = new root.PGSQLitePlugin(dbPath, success, error);
+      return db;
+    };
+
     PGSQLitePlugin.prototype.executeSql = function(sql, success, error) {
       var opts;
       if (!sql) throw new Error("Cannot executeSql without a query");
@@ -69,7 +75,7 @@
       Cordova.exec("PGSQLitePlugin.backgroundExecuteSql", opts);
     };
 
-    PGSQLitePlugin.prototype.transaction = function(fn, success, error) {
+    PGSQLitePlugin.prototype.transaction = function(fn, error, success) {
       var t;
       t = new root.PGSQLitePluginTransaction(this.dbPath);
       fn(t);
@@ -77,12 +83,16 @@
     };
 
     PGSQLitePlugin.prototype.open = function(success, error) {
-      var opts;
+      var db, onSuccess, opts;
       if (!(this.dbPath in this.openDBs)) {
         this.openDBs[this.dbPath] = true;
+        db = this;
+        onSuccess = function() {
+          return success(db);
+        };
         opts = getOptions({
           path: this.dbPath
-        }, success, error);
+        }, onSuccess, error);
         Cordova.exec("PGSQLitePlugin.open", opts);
       }
     };
@@ -110,10 +120,24 @@
     }
 
     PGSQLitePluginTransaction.prototype.executeSql = function(sql, success, error) {
+      var onSuccess, tx, values;
+      if (typeof success !== 'function') {
+        sql = arguments[0];
+        values = arguments[1];
+        success = arguments[2];
+        error = arguments[3];
+        sql = [sql].concat(values);
+      }
+      success = success || function() {};
+      error = error || function() {};
+      tx = this;
+      onSuccess = function(res) {
+        return success(tx, res);
+      };
       this.executes.push(getOptions({
         query: [].concat(sql || []),
         path: this.dbPath
-      }, success, error));
+      }, onSuccess, error));
     };
 
     PGSQLitePluginTransaction.prototype.complete = function(success, error) {

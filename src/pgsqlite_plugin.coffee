@@ -47,6 +47,10 @@ class root.PGSQLitePlugin
     callbacks[ref] = null
     delete callbacks[ref]
     return
+  
+  @openDatabase: (dbPath, version, ignored, maxSize, success, error) ->
+    db = new root.PGSQLitePlugin dbPath, success, error
+    return db
     
   executeSql: (sql, success, error) ->
     throw new Error "Cannot executeSql without a query" unless sql
@@ -54,7 +58,7 @@ class root.PGSQLitePlugin
     Cordova.exec("PGSQLitePlugin.backgroundExecuteSql", opts)
     return
 
-  transaction: (fn, success, error) ->
+  transaction: (fn, error, success) ->
     t = new root.PGSQLitePluginTransaction(@dbPath)
     fn(t)
     t.complete(success, error)
@@ -62,7 +66,9 @@ class root.PGSQLitePlugin
   open: (success, error) ->
     unless @dbPath of @openDBs
       @openDBs[@dbPath] = true
-      opts = getOptions({ path: @dbPath }, success, error)
+      db = @
+      onSuccess = -> success db
+      opts = getOptions({ path: @dbPath }, onSuccess, error)
       Cordova.exec("PGSQLitePlugin.open", opts)
     return
   
@@ -79,7 +85,19 @@ class root.PGSQLitePluginTransaction
     @executes = []
     
   executeSql: (sql, success, error) ->
-    @executes.push getOptions({ query: [].concat(sql || []), path: @dbPath }, success, error)
+    if typeof success != 'function' # html5-like interface
+      sql = arguments[0]
+      values = arguments[1]
+      success = arguments[2]
+      error = arguments[3]
+      sql = [sql].concat(values)
+
+    success = success || ->
+    error = error || ->
+    tx = @
+    onSuccess = (res) -> success tx, res
+
+    @executes.push getOptions({ query: [].concat(sql || []), path: @dbPath }, onSuccess, error)
     return
   
   complete: (success, error) ->

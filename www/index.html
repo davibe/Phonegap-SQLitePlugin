@@ -17,14 +17,14 @@
         console.log(JSON.stringify(line, null, '  '));
     };
     
-	function onBodyLoad(){		
+	function onBodyLoad () {
         console.log ("loaded");
         document.addEventListener("deviceready", onDeviceReady, false);
     }
 	
-	function onDeviceReady(){        
-        console.log ('start');
-        var db = new PGSQLitePlugin('testdb', onOpen, onFail);
+	function onDeviceReady () {
+        
+        var db = PGSQLitePlugin.openDatabase('testdb', '1.0', null, null, onOpen, onFail);
         
         function onFail (e) {
             console.log ("Error");
@@ -33,8 +33,9 @@
             console.log(error);
         }
         
-        function onOpen () {
+        function onOpen (db) {
             console.log('Database opened');
+            console.log (db);
             createTable();
         }
         
@@ -96,15 +97,15 @@
         
         function transact () {
             console.log ("Start a transaction");
-            db.transaction (onTransaction);
+            db.transaction (onTransaction, onFail, onTxDone);
         }
         
         function onTransaction (tx) {
             console.log ("Execute transaction");
-            tx.executeSql(['SELECT * FROM "test" where Id = 1;'], onTxDone, onFail);
+            tx.executeSql(['SELECT * FROM "test" where Id = 1;'], onTxQueryDone, onFail);
         }
         
-        function onTxDone (res) {
+        function onTxQueryDone (tx, res) {
             console.log('-> Got the data from transaction');
             console.log(res);
             
@@ -115,11 +116,144 @@
             res.rows.forEach (onRow);
         }
         
+        function onTxDone (res) {
+            console.log ("The transaction has been completed entirely");
+            console.log (JSON.stringify (res));
+            close();
+        }
+        
+        function close () {
+            db.close(onClose, onFail);
+        }
+        
+        function onClose () {
+            console.log ("Database closed");
+        }
+    
 	}
+        
+    function largeQueryTest () {
+        
+        var before, data;
+        var db = PGSQLitePlugin.openDatabase('testdb', '1.0', null, null, onOpen, onFail);
+        
+        function onFail (e) {
+            console.log ("Error");
+            var error = JSON.stringify(e, null, '  ');
+            alert(error);
+            console.log(error);
+        }
+        
+        function onOpen (db) {
+            console.log('Database opened');
+            console.log (db);
+            createTable();
+        }
+        
+        function createTable () {
+            console.log('Creating test table');
+            var query = '' +
+                'CREATE TABLE IF NOT EXISTS "test" (' +
+                'Id INTEGER PRIMARY KEY AUTOINCREMENT,' +
+                'valore TEXT' +
+                ');' + 
+                '';
+            db.executeSql(query, onCreateTable, onFail);
+        }
+        
+        function onCreateTable () {
+            console.log ('-> Test table created');
+            dropTable();
+        }
+        
+        function dropTable () {
+            console.log ('Clean test table');
+            var query = 'DELETE FROM "test" WHERE 1 = 1;';
+            db.executeSql(query, onDropTable, onFail);
+        }
+        
+        function onDropTable () {
+            console.log('-> Test table cleaned');
+            setData();
+        }
+        function setData () {
+            console.log('Insert some data in the table');
+            // create a large list of objects
+            before = Date.now();
+            list = []
+            for (var i = 0; i<80000; i++)
+                list.push ({ key: '12345678' });
+            data = JSON.stringify(list);
+            var query = 'INSERT INTO "test" VALUES(?, ?);';
+            console.log ("Creating query took " + (Date.now () - before));
+            console.log ("The data of the query is " + data.length + " chars long");
+            before = Date.now ();
+            db.executeSql([query, 1, data], onSetData, onFail);
+        }
+        
+        function onSetData () {
+            console.log ('-> Data has been set');
+            console.log ("Setting data took data took " + (Date.now () - before));
+            getData();
+        }
+        
+        function getData () {
+            console.log ('Getting data');
+            var query = 'SELECT * FROM "test" where Id = 1;'
+            before = Date.now ();
+            db.executeSql(query, onGetData, onFail);
+        }
+        
+        function onGetData(res) {
+            console.log ('-> Got the data');
+            console.log ("Getting data took data took " + (Date.now () - before));
+            //transact ();
+            close();
+        }
+        
+        function transact () {
+            console.log ("Start a transaction");
+            db.transaction (onTransaction, onFail, onTxDone);
+        }
+        
+        function onTransaction (tx) {
+            console.log ("Execute transaction");
+            tx.executeSql(['SELECT * FROM "test" where Id = 1;'], onTxQueryDone, onFail);
+        }
+        
+        function onTxQueryDone (tx, res) {
+            console.log('-> Got the data from transaction');
+            console.log(res);
+            
+            function onRow (row) {
+                console.log (JSON.stringify (row, null, '  '));
+            }
+            
+            res.rows.forEach (onRow);
+        }
+        
+        function onTxDone (res) {
+            console.log ("The transaction has been completed entirely");
+            console.log (JSON.stringify (res));
+            close();
+        }
+        
+        function close () {
+            db.close(onClose, onFail);
+        }
+        
+        function onClose () {
+            console.log ("Database closed");
+        }
+        
+    }
     
     </script>
   </head>
   <body onload="onBodyLoad()">
-	<h1>Hey, it's Cordova!</h1>
+	<h1>Hey, it's me!</h1>
+    <a href="javascript:onDeviceReady();">Run test again (look at the console)</a>
+    <br/><br/>
+    <a href="javascript:largeQueryTest();">Test large query</a>
   </body>
 </html>
