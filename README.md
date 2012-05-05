@@ -1,7 +1,17 @@
 PGSqlitePlugin: SQLitePlugin for Phonegap
 =========================================
 
+This plugin exists because I developed some large enterprise (boring) mobile
+applications and found some problems using WebkitSQLite
+
+- Quota limit (~5Mb on ios)
+- [Transaction problems related to user interaction](http://stackoverflow.com/questions/8741000/html5-web-sql-transactions-skipped-without-error-when-touch-triggered-in-ios)
+- [Persistence problems](https://issues.apache.org/jira/browse/CB-330)
+
 The plugin is meant to work with Phonegap 1.7.0 (Cordova).
+
+The API is not the same as HTML5 Web Sql one. I'm trying to move things in that
+direction though.
 
 Installing
 ==========
