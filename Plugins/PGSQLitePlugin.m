@@ -195,10 +195,10 @@
                 diffRowsAffected = nowRowsAffected - previousRowsAffected;
                 rowsAffected = [NSNumber numberWithInt:diffRowsAffected];
                 nowInsertId = sqlite3_last_insert_rowid(db);
-                if (previousInsertId != nowInsertId) {
+                //if (previousInsertId != nowInsertId) {
                     hasInsertId = YES;
                     insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid(db)];
-                }
+                //}
                 keepGoing = NO;
                 break;
                 
